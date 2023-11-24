@@ -1,10 +1,13 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NestMiddleware, HttpException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { MongoServerError } from 'mongodb';
 
 @Injectable()
 export class ErrorMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
     try {
+    //   console.error('in ErrorMiddleware');
       // Pass control to the next middleware or route handler
       next();
     } catch (error) {
@@ -20,6 +23,13 @@ export class ErrorMiddleware implements NestMiddleware {
         res.status(statusCode).json({
           status: statusCode,
           message: message,
+        });
+      } else if (error instanceof MongoServerError && error.code === 11000) {
+        // If it's a MongoServerError with duplicate key error, handle it accordingly
+        const statusCode = 400; // You might want to use a different status code like 409 Conflict
+        res.status(statusCode).json({
+          status: statusCode,
+          message: 'Duplicate key error. The provided data violates a unique constraint.',
         });
       } else {
         // For unexpected errors, send a generic 500 Internal Server Error

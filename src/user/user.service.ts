@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 // user/user.service.ts
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
@@ -30,10 +30,13 @@ export class UserService {
     try {
       const createdUser = new this.userModel(createUserDto);
       const result = await createdUser.save();
-      this.logger.log(`User created: ${createUserDto.username}`);
       return result;
     } catch (error) {
-      this.logger.error(error.message, 'UserService.createUser');
+      if (error.code === 11000) {
+        // If it's a duplicate key error, handle it accordingly
+        throw new ConflictException('Username is already taken');
+      }
+      // For other errors, rethrow them
       throw error;
     }
   }

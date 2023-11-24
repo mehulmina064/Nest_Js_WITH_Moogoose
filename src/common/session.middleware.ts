@@ -8,7 +8,7 @@ export class SessionMiddleware implements NestMiddleware {
 
   use(req: any, res: any, next: () => void) {
     return session({
-      secret: this.configService.get<string>('SESSION_SECRET'),
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: true,
       cookie: { secure: false },

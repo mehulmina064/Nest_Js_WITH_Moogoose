@@ -1,11 +1,13 @@
 /* eslint-disable prettier/prettier */
 // auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/user.dto';
 import { JwtPayload } from '../user/user.model';
 import { Logger } from '../common/logger.service';
+import { MongoServerError } from 'mongodb';
+
 
 @Injectable()
 export class AuthService {
@@ -22,7 +24,7 @@ export class AuthService {
     throw new UnauthorizedException('Invalid credentials');
   }
 
-  async validateJwtUser(payload: JwtPayload): Promise<any> {
+    async validateJwtUser(payload: JwtPayload): Promise<any> {
     const user = await this.userService.getUser(payload.username);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -43,13 +45,25 @@ export class AuthService {
     this.logger.log(`User logged in: ${user.username}`);
     return { access_token };
   }
-
-  async registerUser(createUserDto: CreateUserDto): Promise<any> {
-    const createdUser = await this.userService.createUser(createUserDto);
-
-    // Log the successful registration
-    this.logger.log(`User registered: ${createdUser.username}`);
-
-    return createdUser;
+// auth.service.ts
+async registerUser(createUserDto: CreateUserDto): Promise<any> {
+    try {
+      const createdUser = await this.userService.createUser(createUserDto);
+  
+      // Log the successful registration
+      this.logger.log(`User registered: ${createdUser.username}`);
+  
+      return createdUser;
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        // If it's a MongoServerError with duplicate key error, handle it accordingly
+        throw new ConflictException('Username or email already exists. Please choose a different one.');
+      } else {
+        // For other errors, rethrow
+        this.logger.error(error.message, 'AuthService.registerUser');
+        throw error;
+      }
+    }
   }
+  
 }

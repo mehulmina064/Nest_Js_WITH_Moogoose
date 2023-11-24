@@ -2,6 +2,8 @@
 // user/user.controller.ts
 import { Controller, Get, Post, Put, Patch, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { LocalAuthGuard } from '../auth/local-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { Logger } from '../common/logger.service';
 import { UserService } from './user.service';
@@ -9,22 +11,23 @@ import { CreateUserDto, UpdateUserDto } from './user.dto';
 import { AuthService } from '../auth/auth.service';
 
 @Controller('user')
-@UseGuards(AuthGuard())
 @ApiTags('user')
 @ApiBearerAuth()
 export class UserController {
   constructor(private readonly authService: AuthService, private readonly userService: UserService, private readonly logger: Logger) {}
 
   @Get(':username')
+  @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Get user by username', description: 'Fetches user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to fetch.' })
   @ApiResponse({ status: 200, description: 'User information successfully fetched.' })
-  async getUser(@Param('username') username: string): Promise<any> {
+  async getUser(@Request() req: any,@Param('username') username: string): Promise<any> {
     this.logger.log(`Fetching user: ${username}`);
     return this.userService.getUser(username);
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Create user', description: 'Creates a new user.' })
   @ApiBody({
     schema: {
@@ -42,12 +45,13 @@ export class UserController {
     description: 'User data to create a new user.',
   })
   @ApiResponse({ status: 201, description: 'User successfully created.' })
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<any> {
+  async createUser(@Request() req: any,@Body() createUserDto: CreateUserDto): Promise<any> {
     this.logger.log(`Creating user: ${createUserDto.username}`);
     return this.userService.createUser(createUserDto);
   }
 
   @Put(':username')
+  @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Update user', description: 'Updates user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to update.' })
   @ApiBody({
@@ -64,12 +68,13 @@ export class UserController {
     description: 'User data to update an existing user.',
   })
   @ApiResponse({ status: 200, description: 'User information successfully updated.' })
-  async updateUser(@Param('username') username: string, @Body() updateUserDto: UpdateUserDto): Promise<any> {
+  async updateUser(@Request() req: any,@Param('username') username: string, @Body() updateUserDto: UpdateUserDto): Promise<any> {
     this.logger.log(`Updating user: ${username}`);
     return this.userService.updateUser(username, updateUserDto);
   }
 
   @Patch(':username')
+  @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Partial update user', description: 'Partially updates user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to partially update.' })
   @ApiBody({
@@ -83,16 +88,17 @@ export class UserController {
     description: 'Partial user data to update an existing user.',
   })
   @ApiResponse({ status: 200, description: 'User information successfully partially updated.' })
-  async partialUpdateUser(@Param('username') username: string, @Body() partialUpdateUserDto: Partial<UpdateUserDto>): Promise<any> {
+  async partialUpdateUser(@Request() req: any,@Param('username') username: string, @Body() partialUpdateUserDto: Partial<UpdateUserDto>): Promise<any> {
     this.logger.log(`Partially updating user: ${username}`);
     return this.userService.partialUpdateUser(username, partialUpdateUserDto);
   }
 
   @Delete(':username')
+  @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Delete user', description: 'Deletes user based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to delete.' })
   @ApiResponse({ status: 200, description: 'User successfully deleted.' })
-  async deleteUser(@Param('username') username: string): Promise<any> {
+  async deleteUser(@Request() req: any,@Param('username') username: string): Promise<any> {
     this.logger.log(`Deleting user: ${username}`);
     return this.userService.deleteUser(username);
   }
@@ -107,7 +113,7 @@ export class UserController {
         password: { type: 'string', example: 'secure_password' },
         name: { type: 'string', example: 'John Doe' },
         email: { type: 'string', example: 'john@example.com' },
-        phone: { type: 'string', example: '1234567890' },
+        phone: { type: 'string indian number', example: '1234567890' },
         company: { type: 'string', example: 'Example Company' },
         entity: { type: 'string', example: 'Example Entity' },
       },
@@ -120,7 +126,7 @@ export class UserController {
     return this.authService.registerUser(createUserDto);
   }
 
-  @UseGuards(AuthGuard('local'))
+  @UseGuards(LocalAuthGuard)
   @Post('login')
   @ApiOperation({ summary: 'User login', description: 'Logs in a user using local authentication.' })
   @ApiBody({
@@ -139,7 +145,7 @@ export class UserController {
     return this.authService.login(req.user);
   }
   
-  @UseGuards(AuthGuard())
+  @UseGuards(LocalAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile', description: 'Fetches the profile of the authenticated user.' })
   @ApiResponse({ status: 200, description: 'User profile successfully fetched.' })
