@@ -11,6 +11,7 @@ import { UserService } from './user.service';
 import { ChangePasswordDto, CreateUserDto, UpdateUserDto } from './user.dto';
 import { AuthService } from '../auth/auth.service';
 import { UserDocument } from './user.model';
+import { SessionGuard } from 'src/common/session.guard';
 
 
 @Controller('user')
@@ -20,7 +21,7 @@ export class UserController {
   constructor(private readonly authService: AuthService, private readonly userService: UserService, private readonly logger: Logger) {}
 
   @Get('userDetails/:username')
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard,SessionGuard) 
   @ApiOperation({ summary: 'Get user by username', description: 'Fetches user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to fetch.' })
   @ApiResponse({ status: 200, description: 'User information successfully fetched.' })
@@ -30,7 +31,7 @@ export class UserController {
   }
 
   @Post("userDetails/")
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard,SessionGuard) 
   @ApiOperation({ summary: 'Create user', description: 'Creates a new user.' })
   @ApiBody({
     schema: {
@@ -54,7 +55,7 @@ export class UserController {
   }
 
   @Put('userDetails/:username')
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard,SessionGuard) 
   @ApiOperation({ summary: 'Update user', description: 'Updates user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to update.' })
   @ApiBody({
@@ -77,7 +78,7 @@ export class UserController {
   }
 
   @Patch('userDetails/:username')
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard,SessionGuard) 
   @ApiOperation({ summary: 'Partial update user', description: 'Partially updates user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to partially update.' })
   @ApiBody({
@@ -97,7 +98,7 @@ export class UserController {
   }
 
   @Delete('userDetails/:username')
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard,SessionGuard) 
   @ApiOperation({ summary: 'Delete user', description: 'Deletes user based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to delete.' })
   @ApiResponse({ status: 200, description: 'User successfully deleted.' })
@@ -138,7 +139,7 @@ export class UserController {
       properties: {
         username: { type: 'string', example: 'john_doe' },
         password: { type: 'string', example: 'secure_password' },
-      },
+      }, 
     },
     description: 'User data to log in a user.',
   })
@@ -148,7 +149,7 @@ export class UserController {
     return this.authService.login(req.user);
   }
   
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard,SessionGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile', description: 'Fetches the profile of the authenticated user.' })
   @ApiResponse({ status: 200, description: 'User profile successfully fetched.' })
@@ -157,7 +158,7 @@ export class UserController {
     return await this.userService.getUserProfile(req.user.username);
   }
   
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard,SessionGuard)
   @Patch('profile')
   @ApiBody({
     schema: {
@@ -179,7 +180,7 @@ export class UserController {
     return this.userService.partialUpdateUser(req.user.username, partialUpdateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard,SessionGuard)
   @Patch('changePassword')
   @ApiBody({
     schema: {

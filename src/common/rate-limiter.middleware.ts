@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
@@ -5,8 +6,8 @@ import { RateLimiterMemory } from 'rate-limiter-flexible';
 @Injectable()
 export class RateLimiterMiddleware implements NestMiddleware {
   private rateLimiter = new RateLimiterMemory({
-    points: 5,
-    duration: 1,
+    points: 60,         
+    duration: 60,  
   });
 
   async use(req: Request, res: Response, next: NextFunction) {

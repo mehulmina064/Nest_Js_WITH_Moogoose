@@ -8,9 +8,11 @@ export interface JwtPayload {
   phone: string;
   company: string;
   entity: string;
+  sessionToken: string
 }
 
 export interface UserDocument extends Document {
+  currentSessionToken: string;
   username: string;
   password: string;
   name: string;
@@ -22,6 +24,8 @@ export interface UserDocument extends Document {
   updatedAt: Date;
   lastLoginAt: Date;
   isDeleted: boolean;
+  sessionToken: string,
+
 
   toPayload(): JwtPayload;
 }
@@ -56,6 +60,7 @@ export const UserSchema = new Schema<UserDocument, UserModel>(
       index: true,
     },
     company: String,
+    sessionToken: String,
     entity: String,
     createdAt: {
       type: Date,
@@ -85,6 +90,7 @@ export const UserSchema = new Schema<UserDocument, UserModel>(
           phone: this.phone,
           company: this.company,
           entity: this.entity,
+          sessionToken: this.sessionToken
         };
       },
     },

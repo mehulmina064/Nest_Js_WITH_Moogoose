@@ -7,6 +7,7 @@ import { CreateUserDto } from '../user/user.dto';
 import { JwtPayload } from '../user/user.model';
 import { Logger } from '../common/logger.service';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -28,12 +29,12 @@ export class AuthService {
 async validateJwtUser(payload: JwtPayload): Promise<any> {
     try {
   const user = await this.userService.getUser(payload.username);
-
+  user.currentSessionToken = payload.sessionToken;
   if (!user) {
     this.logger.warn(`User not found for JWT payload: ${payload.username}`);
     throw new UnauthorizedException('Invalid credentials');
   }
-
+  
   return user;
 }
 catch (error) {
@@ -41,9 +42,17 @@ catch (error) {
 }
 }
 
+private generateSessionToken(): string {
+    const sessionToken = uuidv4();
+    return sessionToken;
+  }
+
   async login(user: any): Promise<{ access_token: string }> {
     const payload: JwtPayload = user.toPayload()
-    const access_token = this.jwtService.sign(payload);
+    //generate session token
+    const sessionToken = this.generateSessionToken();
+    await this.userService.updateSessionToken(user.username, sessionToken);
+    const access_token = this.jwtService.sign({...payload,sessionToken});
     this.logger.log(`User logged in: ${user.username}`);
     return { access_token };
   }

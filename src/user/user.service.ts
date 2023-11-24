@@ -97,10 +97,7 @@ export class UserService {
     try {
       const user = await this.getUser(username);
       const newPassword = await bcrypt.hash(changePassword.password, 10);
-      const oldPassword = await bcrypt.hash(changePassword.password, 10);
-      console.log("newPassword",newPassword);
-      console.log("oldPassword",oldPassword);
-      console.log("oldPasswordUSer",user.password);
+
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -116,6 +113,14 @@ export class UserService {
       this.logger.error(error.message, 'UserService.changePassword');
       throw error;
     }
+  }
+
+  async updateSessionToken(username: string, sessionToken: string): Promise<void> {
+    await this.userModel.updateOne({ username }, { $set: { sessionToken } });
+  }
+
+  async findBySessionToken(sessionToken: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ sessionToken }).exec();
   }
 
   async deleteUser(username: string): Promise<UserDocument> {
