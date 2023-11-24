@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 // user/user.controller.ts
 import { Controller, Get, Post, Put, Patch, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
@@ -7,8 +8,10 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { Logger } from '../common/logger.service';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './user.dto';
+import { ChangePasswordDto, CreateUserDto, UpdateUserDto } from './user.dto';
 import { AuthService } from '../auth/auth.service';
+import { UserDocument } from './user.model';
+
 
 @Controller('user')
 @ApiTags('user')
@@ -16,17 +19,17 @@ import { AuthService } from '../auth/auth.service';
 export class UserController {
   constructor(private readonly authService: AuthService, private readonly userService: UserService, private readonly logger: Logger) {}
 
-  @Get(':username')
+  @Get('userDetails/:username')
   @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Get user by username', description: 'Fetches user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to fetch.' })
   @ApiResponse({ status: 200, description: 'User information successfully fetched.' })
   async getUser(@Request() req: any,@Param('username') username: string): Promise<any> {
     this.logger.log(`Fetching user: ${username}`);
-    return this.userService.getUser(username);
+    return this.userService.getUserProfile(username);
   }
 
-  @Post()
+  @Post("userDetails/")
   @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Create user', description: 'Creates a new user.' })
   @ApiBody({
@@ -50,7 +53,7 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
-  @Put(':username')
+  @Put('userDetails/:username')
   @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Update user', description: 'Updates user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to update.' })
@@ -73,7 +76,7 @@ export class UserController {
     return this.userService.updateUser(username, updateUserDto);
   }
 
-  @Patch(':username')
+  @Patch('userDetails/:username')
   @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Partial update user', description: 'Partially updates user information based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to partially update.' })
@@ -93,7 +96,7 @@ export class UserController {
     return this.userService.partialUpdateUser(username, partialUpdateUserDto);
   }
 
-  @Delete(':username')
+  @Delete('userDetails/:username')
   @UseGuards(JwtAuthGuard) 
   @ApiOperation({ summary: 'Delete user', description: 'Deletes user based on the provided username.' })
   @ApiParam({ name: 'username', description: 'Username of the user to delete.' })
@@ -145,12 +148,54 @@ export class UserController {
     return this.authService.login(req.user);
   }
   
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile', description: 'Fetches the profile of the authenticated user.' })
   @ApiResponse({ status: 200, description: 'User profile successfully fetched.' })
-  getProfile(@Request() req: any): any {
-    return req.user;
+  async getProfile(@Request() req: any): Promise<UserDocument> {
+    // console.log('req.user in controller:', req.user);
+    return await this.userService.getUserProfile(req.user.username);
+  }
+  
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Updated Name' },
+        email: { type: 'string', example: 'updated_email@example.com' },
+        phone: { type: 'string', example: '9876543210' },
+        company: { type: 'string', example: 'Updated Company' },
+        entity: { type: 'string', example: 'Updated Entity' },
+      },
+    },
+    description: 'User data to update my Profile .',
+  })
+  @ApiOperation({ summary: 'Get user profile', description: 'Fetches the profile of the authenticated user.' })
+  @ApiResponse({ status: 200, description: 'User profile successfully fetched.' })
+  async updateProfile(@Request() req: any,@Body() partialUpdateUserDto: UpdateUserDto): Promise<UserDocument> {
+    // console.log('req.user in controller:', req.user);
+    return this.userService.partialUpdateUser(req.user.username, partialUpdateUserDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('changePassword')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        password: { type: 'string', example: 'secure_password' },
+        oldPassword: { type: 'string', example: 'secure_password' },
+      },
+    },
+    description: 'Update my password.',
+  })
+  @ApiOperation({ summary: 'Get user profile', description: 'Fetches the profile of the authenticated user.' })
+  @ApiResponse({ status: 200, description: 'User profile successfully fetched.' })
+  async changePassword(@Request() req: any,@Body() changePassword: ChangePasswordDto): Promise<UserDocument> {
+    // console.log('req.user in controller:', req.user);
+    return this.userService.changePassword(req.user.username, changePassword);
   }
   
 }

@@ -35,11 +35,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       handleRequest(err, user, info) {
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
+          console.log("err");
           throw err || new UnauthorizedException();
         }
-        if(user.status=='DELETED'){
+        if(user.isDeleted){
           throw err || new UnauthorizedException('your account was deleted please contact the administrator');
         }
+        // console.log("user in auth gourd",user);
         return user;
       }
 }

@@ -20,6 +20,8 @@ export interface UserDocument extends Document {
   entity: string;
   createdAt: Date;
   updatedAt: Date;
+  lastLoginAt: Date;
+  isDeleted: boolean;
 
   toPayload(): JwtPayload;
 }
@@ -63,8 +65,17 @@ export const UserSchema = new Schema<UserDocument, UserModel>(
       type: Date,
       default: Date.now,
     },
+    lastLoginAt: {
+        type: Date,
+        default: Date.now,
+      },
+    isDeleted :{
+        type: Boolean,
+        default: false,
+      },
   },
   {
+    versionKey: false,
     methods: {
       toPayload(): JwtPayload {
         return {

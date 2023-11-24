@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // common/success.interceptor.ts
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
@@ -10,6 +11,7 @@ export class SuccessInterceptor implements NestInterceptor {
       map((data) => ({
         success: true,
         data,
+        status: context.switchToHttp().getResponse().statusCode
       })),
     );
   }
