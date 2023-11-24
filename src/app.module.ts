@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // app.module.ts
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -19,7 +20,9 @@ import { JwtStrategy } from './auth/jwt.strategy';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_DB_URI),
+    MongooseModule.forRoot(process.env.MONGO_DB_URI,{
+      dbName: 'beastab', 
+    }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     AuthModule,
     UserModule,
@@ -31,7 +34,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
   controllers: [AppController],
   providers: [
     AppService,
-    JwtStrategy, // Add JwtStrategy to the providers
+    JwtStrategy,
     {
       provide: APP_INTERCEPTOR,
       useClass: SuccessInterceptor,
