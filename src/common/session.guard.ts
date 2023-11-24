@@ -10,7 +10,7 @@ import { RateLimiterMemory } from 'rate-limiter-flexible';
 export class SessionGuard implements CanActivate {
   constructor(private readonly userService: UserService) {}
   private readonly rateLimiter = new RateLimiterMemory({
-    points: 60,         
+    points: 40,         
     duration: 60,  
   });
 
