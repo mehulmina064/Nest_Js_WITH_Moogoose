@@ -14,6 +14,8 @@ export class AuthService {
   constructor(private readonly userService: UserService, private readonly jwtService: JwtService, private readonly logger: Logger) {}
 
   async validateUser(username: string, password: string): Promise<any> {
+
+    
     try {
     const user = await this.userService.getUser(username);
 
